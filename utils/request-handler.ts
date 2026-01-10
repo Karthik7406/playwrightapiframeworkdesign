@@ -1,10 +1,22 @@
+import { APIRequestContext } from "@playwright/test";
+import { expect } from "@playwright/test";
+
 export class RequestHandler {
 
-    private baseUrl: string=""
-    private apiPath: string = ""
+    private request: APIRequestContext
+    private baseUrl: string | undefined;
+    private apiPath: string = "";
     private queryParams: object = {}
-    private apiHeaders: object = {}
-    private apiBody : object = {}
+    private apiHeaders: Record<string, string> = {}
+    private apiBody: object = {}
+
+    private defaultBaseUrl: string = "";
+
+
+    constructor(request: APIRequestContext, apiBaseUrl: string) {
+        this.request = request;
+        this.defaultBaseUrl = apiBaseUrl;
+    }
 
 
     url(url: string) {
@@ -15,23 +27,53 @@ export class RequestHandler {
     }
 
     path(path: string) {
-        this.apiPath  = path;
+        this.apiPath = path;
         return this
     }
 
-    params (params: object) {
+    params(params: object) {
         this.queryParams = params;
         return this;
     }
 
-    headers(headers:object) {
+    headers(headers: Record<string, string>) {
         this.apiHeaders = headers;
         console.log(this.apiHeaders);
         return this;
     }
 
-    body(body:object) {
+    body(body: object) {
         this.apiBody = body
         return this;
     }
+
+    async getRequest(status:number) {
+        let url = this.getUrl();
+        const response = await this.request.get(url, {
+            headers: this.apiHeaders
+        });
+
+        expect(response.status()).toEqual(status);
+
+        const responseJSON = await response.json();
+        return responseJSON;
+
+    }
+
+    private getUrl() {
+        // console.log("***** generating the url *******", this.defaultBaseUrl,  this.baseUrl, this.apiPath);
+        //console.log("generated url ", `${this.baseUrl ?? this.defaultBaseUrl}${this.apiPath}`);
+
+        const url = new URL(`${this.baseUrl ?? this.defaultBaseUrl}${this.apiPath}`);
+
+        // updating the query params
+        for (const [key, value] of Object.entries(this.queryParams)) {
+            url.searchParams.append(key, value);
+        }
+
+        //console.log(url.toString());
+        return url.toString();
+    }
+
+
 }

@@ -6,16 +6,15 @@ export type TestOptions = {
 }
 
 export const test = base.extend<TestOptions>({
-    api: async ({}, use) => {
+    api: async ({request}, use) => {
         // first parameter is the dependency 
         // second parameter is the use function
 
-        const requestHandler = new RequestHandler();
+        const baseUrl = "https://conduit-api.bondaracademy.com/api";
+        const requestHandler = new RequestHandler(request, baseUrl);
 
         console.log("executing before fixture");
-
         // whatever you put before the use line is executed as a precondition
-
         await use(requestHandler);
 
         console.log("executing after the fixture");
@@ -23,3 +22,5 @@ export const test = base.extend<TestOptions>({
         // whatever you put after the use line is executed as post condition
     }
 })
+
+
