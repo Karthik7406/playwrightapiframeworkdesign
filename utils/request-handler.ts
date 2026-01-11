@@ -65,6 +65,8 @@ export class RequestHandler {
         const actualStatus = response.status();
         const responseJSON = await response.json();
 
+        this.logger.logResponse(actualStatus, responseJSON);
+
         //expect(actualStatus).toEqual(statusCode);
         this.statusCodeValidator(actualStatus, statusCode, this.getRequest);
         return responseJSON;
@@ -118,9 +120,9 @@ export class RequestHandler {
             headers: this.apiHeaders
         });
         let actualStatus = response.status();
-        let responseJSON = await response.json();
+       
 
-        this.logger.logResponse(actualStatus, responseJSON);
+        this.logger.logResponse(actualStatus);
         //expect(actualStatus).toEqual(statusCode);
         this.statusCodeValidator(actualStatus, statusCode, this.deleteRequest)
         // for delete request , nothing to return, perform only status validaton

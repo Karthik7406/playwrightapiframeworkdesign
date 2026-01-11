@@ -1,7 +1,8 @@
 import { test } from "../utils/fixtures";
-import { expect } from "@playwright/test"
+// import { expect } from "@playwright/test"
 import { APILogger } from "../utils/logger";
 
+import { expect } from "../utils/custom-expect";
 
 let authToken: string;
 
@@ -27,9 +28,8 @@ test("Optimised: get the test tags", async ({ api }) => {
                                 .getRequest(200);
 
 
-    expect(tagsResponse.tags[0]).toEqual("Test");
-    expect(tagsResponse.tags.length).toBeLessThanOrEqual(10);
-
+    expect(tagsResponse.tags[0]).shouldEqual("Test");
+    expect(tagsResponse.tags.length).shouldBeLessThanOrEqual(10);
 })
 
 test("Optimised: get all the articles ", async ({ api }) => {
@@ -38,8 +38,8 @@ test("Optimised: get all the articles ", async ({ api }) => {
                             .params({ limit: 10, offset: 0 })
                             .getRequest(200);
 
-    expect(response.articles.length).toBeLessThanOrEqual(10);
-    expect(response.articlesCount).toEqual(10);
+    expect(response.articles.length).shouldBeLessThanOrEqual(10);
+    expect(response.articlesCount).shouldEqual(10);
 
 })
 
@@ -62,10 +62,10 @@ test("optimised: CRUD operations on all articles", async ({ api }) => {
                             .headers({
                                 Authorization: authToken
                             })
-                            .postRequest(202);
+                            .postRequest(201);
 
 
-    expect(response.article.title).toEqual("test article 2");
+    expect(response.article.title).shouldEqual("test article 2");
 
     const slugID = response.article.slug;
     
@@ -76,7 +76,7 @@ test("optimised: CRUD operations on all articles", async ({ api }) => {
                                     .getRequest(200);
 
 
-    expect(articlesResponse.articles[0].title).toEqual("test article 2");
+    expect(articlesResponse.articles[0].title).shouldEqual("test article 2");
 
     // updating the article
     console.log("********** update operation ************* ");
@@ -97,7 +97,7 @@ test("optimised: CRUD operations on all articles", async ({ api }) => {
 
     console.log("update article response ", updateArticleResponse);
 
-    expect(updateArticleResponse.article.title).toEqual("apiarticle1modify");
+    expect(updateArticleResponse.article.title).shouldEqual("apiarticle1modify");
 
     const newSlugID = updateArticleResponse.article.slug;
     console.log("********** delete operation ************* ");
@@ -113,7 +113,7 @@ test("optimised: CRUD operations on all articles", async ({ api }) => {
                                     .headers({Authorization: authToken})
                                     .params({ limit: 10, offset: 0 })
                                     .getRequest(200);
-    expect(articlesResponseFinal.articles[0].title).not.toEqual("test article 2");
+    expect(articlesResponseFinal.articles[0].title).not.shouldEqual("test article 2");
 
 })
 
@@ -129,4 +129,14 @@ test("test logger", () => {
 })
 
 
+
+test("Optimised: get all the articles logger test ", async ({ api }) => {
+    const response = await api
+                            .path("/articles")
+                            .params({ limit: 10, offset: 0 })
+                            .getRequest(200);
+
+    expect(response.articles.length).shouldBeLessThanOrEqual(10);
+    expect(response.articlesCount).shouldEqual(10);
+})
 
