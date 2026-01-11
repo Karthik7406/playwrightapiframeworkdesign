@@ -1,5 +1,6 @@
 import { test } from "../utils/fixtures";
 import { expect } from "@playwright/test"
+import { APILogger } from "../utils/logger";
 
 
 let authToken: string;
@@ -61,7 +62,7 @@ test("optimised: CRUD operations on all articles", async ({ api }) => {
                             .headers({
                                 Authorization: authToken
                             })
-                            .postRequest(201);
+                            .postRequest(202);
 
 
     expect(response.article.title).toEqual("test article 2");
@@ -118,6 +119,14 @@ test("optimised: CRUD operations on all articles", async ({ api }) => {
 
 
 
+test("test logger", () => {
+    const logger = new APILogger();
+    logger.logRequest("POST", "https://test.com/api", {Authorization: "auth-token"}, {foo: "bar"});
+    logger.logResponse(200, {foo:"bar", status:"created"});
+
+    const logs = logger.getRecentLogs();
+    console.log(logs);
+})
 
 
 

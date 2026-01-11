@@ -1,5 +1,6 @@
 import { APIRequestContext } from "@playwright/test";
 import { expect } from "@playwright/test";
+import { APILogger } from "./logger";
 
 export class RequestHandler {
 
@@ -8,15 +9,17 @@ export class RequestHandler {
     private apiPath: string = "";
     private queryParams: object = {}
     private apiHeaders: Record<string, string> = {}
-    private apiBody: object = {}
+    private apiBody: object = {};
+    private logger: APILogger;
 
     private defaultBaseUrl: string = "";
 
 
-    constructor(request: APIRequestContext, apiBaseUrl: string) {
+    constructor(request: APIRequestContext, apiBaseUrl: string, logger: APILogger) {
         
         this.request = request;
         this.defaultBaseUrl = apiBaseUrl;
+        this.logger = logger;
 
         console.log("API Base URL ", this.defaultBaseUrl);
     }
@@ -53,49 +56,73 @@ export class RequestHandler {
     async getRequest(statusCode:number) {
         let url = this.getUrl();
         console.log("*** URL *** ", url);
+        this.logger.logRequest("GET", url, this.apiHeaders, this.apiBody);
+
         const response = await this.request.get(url, {
             headers: this.apiHeaders
         });
 
-        expect(response.status()).toEqual(statusCode);
-
+        const actualStatus = response.status();
         const responseJSON = await response.json();
-        return responseJSON;
 
+        //expect(actualStatus).toEqual(statusCode);
+        this.statusCodeValidator(actualStatus, statusCode, this.getRequest);
+        return responseJSON;
     }
 
     async postRequest(statusCode: number) {
 
         const url = this.getUrl();
+
+        this.logger.logRequest("POST", url, this.apiHeaders, this.apiBody);
         const response = await this.request.post(url, {
             headers: this.apiHeaders,
             data: this.apiBody
         });
 
-        expect(response.status()).toEqual(statusCode);
+        const actualStatus = response.status();
         const responseJSON = await response.json();
+
+        this.logger.logResponse(actualStatus, responseJSON);
+        this.statusCodeValidator(actualStatus, statusCode, this.postRequest);
+
         return responseJSON;
 
     }
 
     async putRequest(statusCode: number) {
         const url = this.getUrl();
+        this.logger.logRequest("PUT", url, this.apiHeaders, this.apiBody);
+
         const response = await this.request.put(url, {
             headers: this.apiHeaders,
             data: this.apiBody
         });
-        expect(response.status()).toEqual(statusCode);
+
+        const actualStatus = response.status();
         const responseJSON = await response.json();
+
+        this.logger.logResponse(actualStatus, responseJSON);
+
+        //expect(actualStatus).toEqual(statusCode);
+        this.statusCodeValidator(actualStatus, statusCode, this.putRequest);
         return responseJSON;
     }
 
     async deleteRequest(statusCode: number) {
         const url = this.getUrl();
+        this.logger.logRequest("DELETE", url, this.apiHeaders);
+
+
         const response = await this.request.delete(url, {
             headers: this.apiHeaders
         });
+        let actualStatus = response.status();
+        let responseJSON = await response.json();
 
-        expect(response.status()).toEqual(statusCode);
+        this.logger.logResponse(actualStatus, responseJSON);
+        //expect(actualStatus).toEqual(statusCode);
+        this.statusCodeValidator(actualStatus, statusCode, this.deleteRequest)
         // for delete request , nothing to return, perform only status validaton
     }
 
@@ -112,6 +139,15 @@ export class RequestHandler {
 
         //console.log(url.toString());
         return url.toString();
+    }
+
+    private statusCodeValidator(actualStatus: number, expectedStatus: number, callingMethod: Function) {
+        if(actualStatus !== expectedStatus) {
+            const logs = this.logger.getRecentLogs();
+            const error = new Error(`Expected status ${expectedStatus} but got ${actualStatus} \n\n Recent API Activity \n ${logs}`);
+            Error.captureStackTrace(error, callingMethod )
+            throw error;
+        }
     }
 
 
