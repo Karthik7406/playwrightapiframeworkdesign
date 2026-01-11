@@ -149,7 +149,7 @@ test("post request - creating and deleting a article", async ({ request }) => {
   // getting the details of the updated article
   const articleResponse = await request.get(`https://conduit-api.bondaracademy.com/api/articles/${newSlugID}`, {
     headers: {
-      Authentication: authToken
+      Authorization: authToken
     }
   });
 

@@ -53,8 +53,3 @@ test("get the test tags", async({api}) => {
    expect(response.tags).toContain("Git");
    expect(response.tags.length).toBeLessThanOrEqual(10);
 })
-
-
-
-
-
