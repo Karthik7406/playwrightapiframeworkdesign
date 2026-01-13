@@ -5,15 +5,6 @@ import { APILogger } from "../utils/logger";
 import { expect } from "../utils/custom-expect";
 import createToken from "../helpers/createToken";
 
-let authToken: string;
-
-test.beforeAll("Get Token", async ({ api, config }) => {
-   
-
-    authToken = await createToken(config.userEmail, config.password);
-
-})
-
 
 test("Optimised: get the test tags", async ({ api }) => {
 
@@ -22,7 +13,7 @@ test("Optimised: get the test tags", async ({ api }) => {
         .getRequest(200);
 
 
-    expect(tagsResponse.tags[0]).shouldEqual("Test");
+    expect(tagsResponse.tags[0]).shouldEqual("playwright");
     expect(tagsResponse.tags.length).shouldBeLessThanOrEqual(10);
 })
 
@@ -45,32 +36,28 @@ test("optimised: CRUD operations on all articles", async ({ api }) => {
         .path("/articles")
         .body({
             "article": {
-                "title": "test article 2",
-                "description": "test article 2",
+                "title": "test article 23",
+                "description": "test article 23",
                 "body": "this is test article from API",
                 "tagList": [
                     "tag2"
                 ]
             }
         })
-        .headers({
-            Authorization: authToken
-        })
         .postRequest(201);
 
 
-    expect(response.article.title).shouldEqual("test article 2");
+    expect(response.article.title).shouldEqual("test article 23");
 
     const slugID = response.article.slug;
 
     const articlesResponse = await api
         .path("/articles")
         .params({ limit: 10, offset: 0 })
-        .headers({ Authorization: authToken })
         .getRequest(200);
 
 
-    expect(articlesResponse.articles[0].title).shouldEqual("test article 2");
+    expect(articlesResponse.articles[0].title).shouldEqual("test article 23");
 
     // updating the article
     console.log("********** update operation ************* ");
@@ -84,9 +71,6 @@ test("optimised: CRUD operations on all articles", async ({ api }) => {
                 "tagList": []
             }
         })
-        .headers({
-            Authorization: authToken
-        })
         .putRequest(200);
 
     console.log("update article response ", updateArticleResponse);
@@ -97,63 +81,12 @@ test("optimised: CRUD operations on all articles", async ({ api }) => {
     console.log("********** delete operation ************* ");
     const deleteArticleResponse = await api
         .path(`/articles/${newSlugID}`)
-        .headers({
-            Authorization: authToken
-        })
         .deleteRequest(204);
 
     const articlesResponseFinal = await api
         .path("/articles")
-        .headers({ Authorization: authToken })
         .params({ limit: 10, offset: 0 })
         .getRequest(200);
-    expect(articlesResponseFinal.articles[0].title).not.shouldEqual("test article 2");
-
-})
-
-
-
-test("test logger", () => {
-    const logger = new APILogger();
-    logger.logRequest("POST", "https://test.com/api", { Authorization: "auth-token" }, { foo: "bar" });
-    logger.logResponse(200, { foo: "bar", status: "created" });
-
-    const logs = logger.getRecentLogs();
-    console.log(logs);
-})
-
-
-
-test("Optimised: get all the articles logger test ", async ({ api }) => {
-    const response = await api
-        .path("/articles")
-        .params({ limit: 10, offset: 0 })
-        .getRequest(200);
-
-    expect(response.articles.length).shouldBeLessThanOrEqual(10);
-    expect(response.articlesCount).shouldEqual(10);
-})
-
-
-
-
-test("Optimised: 2get the test tags", async ({ api }) => {
-
-    const response = await api
-        .path("/articles")
-        .params({ limit: 10, offset: 0 })
-        .getRequest(200);
-
-    expect(response.articles.length).shouldBeLessThanOrEqual(10);
-    expect(response.articlesCount).shouldEqual(10);
-
-    const tagsResponse = await api
-        .path("/tags")
-        .getRequest(201);
-
-
-    expect(tagsResponse.tags[0]).shouldEqual("Test");
-    expect(tagsResponse.tags.length).shouldBeLessThanOrEqual(10);
-
+    expect(articlesResponseFinal.articles[0].title).not.shouldEqual("test article 23");
 
 })

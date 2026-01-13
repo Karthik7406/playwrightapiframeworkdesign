@@ -14,19 +14,24 @@ export class RequestHandler {
 
     private defaultBaseUrl: string = "";
 
+    private defaultAuthToken:string;
 
-    constructor(request: APIRequestContext, apiBaseUrl: string, logger: APILogger) {
+    private clearAuthFlag: boolean;
+
+
+    constructor(request: APIRequestContext, apiBaseUrl: string, logger: APILogger, authToken: string="") {
         
         this.request = request;
         this.defaultBaseUrl = apiBaseUrl;
         this.logger = logger;
+        this.defaultAuthToken = authToken;
 
-        console.log("API Base URL ", this.defaultBaseUrl);
+        // console.log("API Base URL ", this.defaultBaseUrl);
     }
 
 
     url(url: string) {
-        console.log("executing setting of url");
+        // console.log("executing setting of url");
         this.baseUrl = url;
         return this; // by returning this, we provide the instance to have access to other instance methods in the same class -> fluent interface design
         // by returning this we would be able to chain the methods with . notation
@@ -44,7 +49,7 @@ export class RequestHandler {
 
     headers(headers: Record<string, string>) {
         this.apiHeaders = headers;
-        console.log(this.apiHeaders);
+        // console.log(this.apiHeaders);
         return this;
     }
 
@@ -53,14 +58,21 @@ export class RequestHandler {
         return this;
     }
 
+    clearAuth() {
+        this.clearAuthFlag = true;
+        return this;
+    }
+
     async getRequest(statusCode:number) {
         let url = this.getUrl();
         console.log("*** URL *** ", url);
-        this.logger.logRequest("GET", url, this.apiHeaders, this.apiBody);
+        this.logger.logRequest("GET", url, this.getHeaders(), this.apiBody);
 
         const response = await this.request.get(url, {
-            headers: this.apiHeaders
+            headers: this.getHeaders()
         });
+
+        this.cleaupFields();
 
         const actualStatus = response.status();
         const responseJSON = await response.json();
@@ -76,11 +88,12 @@ export class RequestHandler {
 
         const url = this.getUrl();
 
-        this.logger.logRequest("POST", url, this.apiHeaders, this.apiBody);
+        this.logger.logRequest("POST", url, this.getHeaders(), this.apiBody);
         const response = await this.request.post(url, {
-            headers: this.apiHeaders,
+            headers: this.getHeaders(),
             data: this.apiBody
         });
+        this.cleaupFields();
 
         const actualStatus = response.status();
         const responseJSON = await response.json();
@@ -94,12 +107,13 @@ export class RequestHandler {
 
     async putRequest(statusCode: number) {
         const url = this.getUrl();
-        this.logger.logRequest("PUT", url, this.apiHeaders, this.apiBody);
+        this.logger.logRequest("PUT", url, this.getHeaders(), this.apiBody);
 
         const response = await this.request.put(url, {
-            headers: this.apiHeaders,
+            headers: this.getHeaders(),
             data: this.apiBody
         });
+        this.cleaupFields();
 
         const actualStatus = response.status();
         const responseJSON = await response.json();
@@ -113,15 +127,15 @@ export class RequestHandler {
 
     async deleteRequest(statusCode: number) {
         const url = this.getUrl();
-        this.logger.logRequest("DELETE", url, this.apiHeaders);
-
+        this.logger.logRequest("DELETE", url, this.getHeaders());
 
         const response = await this.request.delete(url, {
-            headers: this.apiHeaders
+            headers: this.getHeaders()
         });
+        this.cleaupFields();
+
         let actualStatus = response.status();
        
-
         this.logger.logResponse(actualStatus);
         //expect(actualStatus).toEqual(statusCode);
         this.statusCodeValidator(actualStatus, statusCode, this.deleteRequest)
@@ -152,5 +166,21 @@ export class RequestHandler {
         }
     }
 
+    private cleaupFields() {
+        this.apiBody = {};
+        this.apiHeaders = {};
+        this.baseUrl = undefined;
+        this.apiPath = "";
+        this.queryParams = {};
+        this.clearAuthFlag = false;
+    }
 
+
+    private getHeaders() {
+        if(!this.clearAuthFlag) {
+            this.apiHeaders["Authorization"] = this.apiHeaders["Authorization"] || this.defaultAuthToken;
+        }
+
+        return this.apiHeaders;
+    }
 }
