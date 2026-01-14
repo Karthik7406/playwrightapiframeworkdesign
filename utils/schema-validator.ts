@@ -2,15 +2,13 @@ import fs from "fs/promises";
 
 import path from "path";
 
-
 import Ajv from "ajv";
-
 import { createSchema } from 'genson-js';
 
-
+import addFormats from "ajv-formats"
 
 const ajv = new Ajv({ allErrors: true }); // ajv will continue to validate the schema even after we get the first error
-
+addFormats(ajv)
 
 const SCHEMA_BASE_PATH = "response_schemas";
 

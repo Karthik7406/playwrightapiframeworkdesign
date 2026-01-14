@@ -25,10 +25,12 @@
                         }
                     },
                     "createdAt": {
-                        "type": "string"
+                        "type": "string",
+                        "format":"email"
                     },
                     "updatedAt": {
-                        "type": "string"
+                        "type": "string",
+                        "format":"date-time"
                     },
                     "favorited": {
                         "type": "boolean"
