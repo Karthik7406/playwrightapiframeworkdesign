@@ -14,7 +14,7 @@ declare global {
         interface Matchers<R, T> {
             shouldEqual(expected: T): R
             shouldBeLessThanOrEqual(expected: T): R
-            shouldMatchSchema(dirName: string, fileName: string): Promise<R>
+            shouldMatchSchema(dirName: string, fileName: string, createSchemaFlag?:boolean): Promise<R>
         }
     }
 }
@@ -22,12 +22,12 @@ declare global {
 
 export const expect = baseExpect.extend({
 
-    async shouldMatchSchema(recieved: any, dirName: string, fileName: string) {
+    async shouldMatchSchema(recieved: any, dirName: string, fileName: string, createSchemaFlag: boolean = false) {
         let pass: boolean; // result will be assigned
         let message: string = '';
 
         try {
-            await validateSchema(dirName, fileName, recieved)
+            await validateSchema(dirName, fileName, recieved, createSchemaFlag)
             pass = true;
             message = "Schema validation passed";
             console.log("message => ", message);
