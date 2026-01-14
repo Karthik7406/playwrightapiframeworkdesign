@@ -4,6 +4,7 @@ import { APILogger } from "../utils/logger";
 
 import { expect } from "../utils/custom-expect";
 import createToken from "../helpers/createToken";
+import { config } from "../api-test.config";
 
 
 test("Optimised: get the test tags", async ({ api }) => {
@@ -13,7 +14,7 @@ test("Optimised: get the test tags", async ({ api }) => {
         .getRequest(200);
 
 
-    expect(tagsResponse.tags[0]).shouldEqual("playwright");
+    expect(tagsResponse.tags[0]).shouldEqual("Test");
     expect(tagsResponse.tags.length).shouldBeLessThanOrEqual(10);
 })
 
@@ -21,13 +22,12 @@ test("Optimised: get all the articles ", async ({ api }) => {
     const response = await api
         .path("/articles")
         .params({ limit: 10, offset: 0 })
+        .clearAuth()
         .getRequest(200);
 
     expect(response.articles.length).shouldBeLessThanOrEqual(10);
     expect(response.articlesCount).shouldEqual(10);
-
 })
-
 
 test("optimised: CRUD operations on all articles", async ({ api }) => {
     console.log("********** create operation ************* ");

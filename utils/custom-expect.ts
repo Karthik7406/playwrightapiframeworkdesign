@@ -1,5 +1,6 @@
 import { expect as baseExpect } from '@playwright/test';
 import { APILogger } from './logger';
+import { validateSchema } from './schema-validator';
 
 
 let apiLogger: APILogger;
@@ -13,12 +14,37 @@ declare global {
         interface Matchers<R, T> {
             shouldEqual(expected: T): R
             shouldBeLessThanOrEqual(expected: T): R
+            shouldMatchSchema(dirName: string, fileName: string): Promise<R>
         }
     }
 }
 
 
 export const expect = baseExpect.extend({
+
+    async shouldMatchSchema(recieved: any, dirName: string, fileName: string) {
+        let pass: boolean; // result will be assigned
+        let message: string = '';
+
+        try {
+            await validateSchema(dirName, fileName, recieved)
+            pass = true;
+            message = "Schema validation passed";
+            console.log("message => ", message);
+        }
+        catch (err: any) {
+            pass = false;
+            const logs = apiLogger.getRecentLogs();
+            message = `${err.message} \n\n Recent API Activity: \n ${logs}`;
+            console.log("error message -> ", message);
+        }
+
+        return {
+            message: () => message,
+            pass
+        };
+
+    },
 
     shouldEqual(recieved: any, expected: any) {
         let pass: boolean; // result will be assigned

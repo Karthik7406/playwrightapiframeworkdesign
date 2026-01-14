@@ -37,7 +37,7 @@ test("second test 3", async ({ api }) => {
                             .params({ limit: 10, offset: 0, foo: "bar" })
                             .getRequest(200);
 
-    console.log("response ", response);
+   
 
     expect(response.articles.length).toBeLessThanOrEqual(10);
     expect(response.articlesCount).toEqual(10);
@@ -49,7 +49,7 @@ test("get the test tags", async({api}) => {
                                 .path("/tags")
                                 .getRequest(200);
 
-   console.log("tags response ", response);
+   
    expect(response.tags).toContain("Git");
    expect(response.tags.length).toBeLessThanOrEqual(10);
 })
