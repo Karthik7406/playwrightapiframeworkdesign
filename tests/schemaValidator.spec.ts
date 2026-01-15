@@ -3,6 +3,8 @@ import { RequestHandler } from "../utils/request-handler";
 import { test } from "../utils/fixtures";
 import { validateSchema } from "../utils/schema-validator";
 
+import { faker } from '@faker-js/faker';
+
 
 
 
@@ -36,12 +38,14 @@ test("Optimised: get all the articles ", async ({ api }) => {
 
 
 test("optimised: CRUD operations on all articles", async ({ api }) => {
+
+    let articleTitle = faker.lorem.sentence(5);
     
     const response = await api
         .path("/articles")
         .body({
             "article": {
-                "title": "test article 23",
+                "title": articleTitle,
                 "description": "test article 23",
                 "body": "this is test article from API",
                 "tagList": [
@@ -51,8 +55,8 @@ test("optimised: CRUD operations on all articles", async ({ api }) => {
         })
         .postRequest(201);
 
-    await expect(response).shouldMatchSchema("articles", "POST_article");
-    expect(response.article.title).shouldEqual("test article 23");
+    await expect(response).shouldMatchSchema("articles", "POST_article", true);
+    expect(response.article.title).shouldEqual(articleTitle);
 
     const slugID = response.article.slug;
 
@@ -61,8 +65,10 @@ test("optimised: CRUD operations on all articles", async ({ api }) => {
         .params({ limit: 10, offset: 0 })
         .getRequest(200);
 
-    await expect(articlesResponse).shouldMatchSchema("articles", "GET_articles");
-    expect(articlesResponse.articles[0].title).shouldEqual("test article 23");
+    await expect(articlesResponse).shouldMatchSchema("articles", "GET_articles", true);
+    expect(articlesResponse.articles[0].title).shouldEqual(articleTitle);
+
+    let modifiedName = faker.lorem.sentence(10);
 
     // updating the article
     console.log("********** update operation ************* ");
@@ -70,7 +76,7 @@ test("optimised: CRUD operations on all articles", async ({ api }) => {
         .path(`/articles/${slugID}`)
         .body({
             "article": {
-                "title": "apiarticle1modify",
+                "title": modifiedName,
                 "description": "updated description from API",
                 "body": "ui is created this article, api modify",
                 "tagList": []
@@ -80,7 +86,7 @@ test("optimised: CRUD operations on all articles", async ({ api }) => {
 
     console.log("update article response ", updateArticleResponse);
     await expect(updateArticleResponse).shouldMatchSchema("articles", "PUT_article");
-    expect(updateArticleResponse.article.title).shouldEqual("apiarticle1modify");
+    expect(updateArticleResponse.article.title).shouldEqual(modifiedName);
 
     const newSlugID = updateArticleResponse.article.slug;
     console.log("********** delete operation ************* ");
